@@ -1,0 +1,5 @@
+#!/bin/sh
+
+cargo build
+target/debug/mt -d
+
