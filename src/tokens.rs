@@ -10,7 +10,18 @@ pub enum Token {
     Dot,
     SemiColon,
     Quote,
-    DoubleQuote,
+    Or,
+    And,
+    Xor,
+    Bang,
+    Equal,
+    DoubleEqual,
+    BangEqual,
+    Greater,
+    Less,
+    GreaterEqual,
+    LessEqual,
+    Comma,
 
     // invisible tokens
     WhiteSpace,
@@ -20,6 +31,7 @@ pub enum Token {
     // literals
     Integer(i64),
     Float(f64),
+    Bool(bool),
     String(String),
 
     // keywords

@@ -83,6 +83,8 @@ impl Lexer {
         self.back_char();
         match s.as_str() {
             "print" => tokens::Token::Print,
+            "true" => tokens::Token::Bool(true),
+            "false" => tokens::Token::Bool(false),
             _ => panic!("Unknown identifier: {}", s),
         }
     }
@@ -105,6 +107,68 @@ impl Lexer {
             ' ' => tokens::Token::WhiteSpace,
             '\t' => tokens::Token::WhiteSpace,
             '\r' => tokens::Token::WhiteSpace,
+
+            '|' => {
+                self.read_char();
+                if self.ch == '|' {
+                    tokens::Token::Or
+                } else {
+                    panic!("Unknown token: |{}", self.ch);
+                }
+            },
+
+            '&' => {
+                self.read_char();
+                if self.ch == '&' {
+                    tokens::Token::And
+                } else {
+                    panic!("Unknown token: &{}", self.ch);
+                }
+            },
+
+            '^' => tokens::Token::Xor,
+            ',' => tokens::Token::Comma,
+
+            // equality
+            '=' => {
+                self.read_char();
+                if self.ch == '=' {
+                    tokens::Token::DoubleEqual
+                } else {
+                    self.back_char();
+                    tokens::Token::Equal
+                }
+            }
+
+            '!' => {
+                self.read_char();
+                if self.ch == '=' {
+                    tokens::Token::BangEqual
+                } else {
+                    self.back_char();
+                    tokens::Token::Bang
+                }
+            }
+
+            '>' => {
+                self.read_char();
+                if self.ch == '=' {
+                    tokens::Token::GreaterEqual
+                } else {
+                    self.back_char();
+                    tokens::Token::Greater
+                }
+            }
+
+            '<' => {
+                self.read_char();
+                if self.ch == '=' {
+                    tokens::Token::LessEqual
+                } else {
+                    self.back_char();
+                    tokens::Token::Less
+                }
+            }
 
             // numbers
             '0'..='9' => self.read_number(),

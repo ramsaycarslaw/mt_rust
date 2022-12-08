@@ -17,6 +17,8 @@ pub enum Expression {
     Return(Box<Expression>),
     Let(String, Box<Expression>),
     Block(Vec<Expression>),
+
+    Null,
 }
 
 pub enum Statement {

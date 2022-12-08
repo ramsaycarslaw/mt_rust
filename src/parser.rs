@@ -75,7 +75,59 @@ impl Parser {
     }
 
     fn expression(&mut self) -> Result<Expression> {
-        self.term()
+        self.or()
+    }
+
+    fn or(&mut self) -> Result<Expression> {
+        let mut expr = self.and()?;
+
+        while self.expect(&Token::Or) {
+            self.advance();
+            let op = self.previous();
+            let right = self.and()?;
+            expr = Expression::Infix(Box::new(expr), op, Box::new(right));
+        }
+
+        Ok(expr)
+    }
+
+    fn and(&mut self) -> Result<Expression> {
+        let mut expr = self.equality()?;
+
+        while self.expect(&Token::And) {
+            self.advance();
+            let op = self.previous();
+            let right = self.equality()?;
+            expr = Expression::Infix(Box::new(expr), op, Box::new(right));
+        }
+
+        Ok(expr)
+    }
+
+    fn equality(&mut self) -> Result<Expression> {
+        let mut expr = self.comparison()?;
+
+        while self.expect(&Token::DoubleEqual) || self.expect(&Token::BangEqual) {
+            self.advance();
+            let op = self.previous();
+            let right = self.comparison()?;
+            expr = Expression::Infix(Box::new(expr), op, Box::new(right));
+        }
+
+        Ok(expr)
+    }
+
+    fn comparison(&mut self) -> Result<Expression> {
+        let mut expr = self.term()?;
+
+        while self.expect(&Token::Greater) || self.expect(&Token::GreaterEqual) || self.expect(&Token::Less) || self.expect(&Token::LessEqual) {
+            self.advance();
+            let op = self.previous();
+            let right = self.term()?;
+            expr = Expression::Infix(Box::new(expr), op, Box::new(right));
+        }
+
+        Ok(expr)
     }
 
     // plus and minus 
@@ -102,24 +154,35 @@ impl Parser {
 
     // times and divide
     fn factor(&mut self) -> Result<Expression> {
-        let mut expr = self.atom()?;
+        let mut expr = self.prefix()?;
 
         loop {
             match self.peek() {
                 Token::Times => {
                     self.advance();
-                    let right = self.atom()?;
+                    let right = self.prefix()?;
                     expr = Expression::Infix(Box::new(expr), Token::Times, Box::new(right));
                 }
                 Token::Divide => {
                     self.advance();
-                    let right = self.atom()?;
+                    let right = self.prefix()?;
                     expr = Expression::Infix(Box::new(expr), Token::Divide, Box::new(right));
                 }
                 _ => break,
             }
         }
         Ok(expr)
+    }
+
+    fn prefix(&mut self) -> Result<Expression> {
+        if self.expect(&Token::Minus) || self.expect(&Token::Bang) {
+            self.advance();
+            let op = self.previous();
+            let right = self.atom()?;
+            Ok(Expression::Prefix(op, Box::new(right)))
+        } else {
+            self.atom()
+        }
     }
 
     fn atom(&mut self) -> Result<Expression> {
@@ -142,15 +205,19 @@ impl Parser {
                     _ => unreachable!(),
                 }
             }
+            Token::Bool(_) => {
+                match self.advance() {
+                    Token::Bool(b) => Ok(Expression::Boolean(b)),
+                    _ => unreachable!(),
+                }
+            }
             Token::LeftParen => {
                 self.advance();
                 let expr = self.expression()?;
                 self.consume(&Token::RightParen, "Expected ')' after expression.".to_string());
                 Ok(expr)
             }
-            _ => {
-                panic!("Expected expression got {:?}.", self.peek());
-            }
+            _ => Err(anyhow::anyhow!("Expected expression")),
         }
     }
 
