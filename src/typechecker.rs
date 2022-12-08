@@ -12,7 +12,13 @@ pub fn typecheck(ast: Vec<Statement>) -> bool {
                 if !check {
                     return false;
                 }
-            }
+            },
+            Statement::Print(expr) => {
+                let check = typecheck_expression(&expr);
+                if !check {
+                    return false;
+                }
+            },
         }
     }
     true

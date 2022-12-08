@@ -22,6 +22,9 @@ pub enum Token {
     Float(f64),
     String(String),
 
+    // keywords
+    Print,
+
     // illegal
     Illegal(char, usize, usize),
 }

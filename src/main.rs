@@ -26,7 +26,6 @@ fn repl(debug: bool) {
         let ast = p.parse();
         // let check = typechecker::typecheck(ast);
         let eval = eval::eval(ast);
-        println!("{:?}", eval);
     }   
 }
 

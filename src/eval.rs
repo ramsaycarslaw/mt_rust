@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter, Result};
+
 use crate::ast::*;
 use crate::tokens::*;
 
@@ -8,6 +10,18 @@ pub enum Value {
     Bool(bool),
     String(String),
     Null,
+}
+
+impl Display for Value {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        match self {
+            Value::Int(i) => write!(f, "{}", i),
+            Value::Float(fl) => write!(f, "{}", fl),
+            Value::Bool(b) => write!(f, "{}", b),
+            Value::String(s) => write!(f, "{}", s),
+            Value::Null => write!(f, "null"),
+        }
+    }
 }
 
 fn eval_expression(expr: &Expression) -> Value {
@@ -56,6 +70,10 @@ pub fn eval(ast: Vec<Statement>) -> Vec<Value> {
             Statement::Expression(e) => {
                 let value = eval_expression(&e);
                 values.push(value);
+            },
+            Statement::Print(expr) => {
+                let value = eval_expression(&expr);
+                println!("{}", value);
             }
         }
     }

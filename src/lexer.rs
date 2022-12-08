@@ -74,6 +74,19 @@ impl Lexer {
         tokens::Token::String(s)
     }
 
+    fn read_identifier(&mut self) -> tokens::Token {
+        let mut s = String::new();
+        while self.ch.is_alphanumeric() {
+            s.push(self.ch);
+            self.read_char();
+        }
+        self.back_char();
+        match s.as_str() {
+            "print" => tokens::Token::Print,
+            _ => panic!("Unknown identifier: {}", s),
+        }
+    }
+
     fn match_token(&mut self) -> tokens::Token {
         match self.ch {
             // single character tokens
@@ -95,6 +108,9 @@ impl Lexer {
 
             // numbers
             '0'..='9' => self.read_number(),
+
+            // identifiers
+            'a'..='z' => self.read_identifier(),
 
             // line
             '\n' => {

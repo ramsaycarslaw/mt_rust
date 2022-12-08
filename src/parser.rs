@@ -54,7 +54,18 @@ impl Parser {
     }
 
     fn statement(&mut self) -> Result<Statement> {
-        self.expression_statement()
+        if self.expect(&Token::Print) {
+            self.print_statement()
+        } else {
+            self.expression_statement()
+        }
+    }
+
+    fn print_statement(&mut self) -> Result<Statement> {
+        self.advance();
+        let expr = self.expression()?;
+        self.consume(&Token::SemiColon, "Expected ; after print".to_string());
+        Ok(Statement::Print(expr))
     }
 
     fn expression_statement(&mut self) -> Result<Statement> {
@@ -138,7 +149,7 @@ impl Parser {
                 Ok(expr)
             }
             _ => {
-                panic!("Expected expression.");
+                panic!("Expected expression got {:?}.", self.peek());
             }
         }
     }
