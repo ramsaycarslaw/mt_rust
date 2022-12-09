@@ -7,6 +7,7 @@ mod parser;
 mod ast;
 mod typechecker;
 mod eval;
+mod environment;
 
 fn read_file(fname: String) -> String {
     let mut f = File::open(fname).unwrap();
@@ -26,12 +27,25 @@ fn repl(debug: bool) {
         let mut l = lexer::Lexer::new(input.clone());
         let mut p = parser::Parser::new(l.lex(debug));
         let ast = p.parse();
-        // let check = typechecker::typecheck(ast);
         eval::eval(ast);
         history.push(input);
     }   
 }
 
 fn main() {
-    repl(false);
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() == 1 {
+        repl(false);
+    } else if args.len() == 2 {
+        let fname = args[1].clone();
+        let mut l = lexer::Lexer::new(read_file(fname));
+        let mut p = parser::Parser::new(l.lex(false));
+        let ast = p.parse();
+        let type_map = p.get_type_map();
+        // println!("Typechecking... got {:?}", typechecker::typecheck(&ast));
+        typechecker::typecheck(&ast, type_map.clone());
+        eval::eval(ast);
+    } else {
+        println!("Usage: mt [filename]");
+    }
 }

@@ -1,3 +1,4 @@
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     // 1 character tokens
@@ -22,6 +23,9 @@ pub enum Token {
     GreaterEqual,
     LessEqual,
     Comma,
+    LeftBrace,
+    RightBrace,
+    Colon,
 
     // invisible tokens
     WhiteSpace,
@@ -34,8 +38,14 @@ pub enum Token {
     Bool(bool),
     String(String),
 
+    // Identifier 
+    Identifier(String),
+
     // keywords
     Print,
+    If,
+    Else,
+    Let,
 
     // illegal
     Illegal(char, usize, usize),

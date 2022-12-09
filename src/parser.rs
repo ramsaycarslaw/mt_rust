@@ -1,22 +1,13 @@
-use crate::lexer::Lexer;
+use std::collections::HashMap;
+
 use crate::tokens::Token;
 use crate::ast::Expression;
 use crate::ast::Statement;
 use anyhow::Result;
 
-#[derive(PartialOrd, PartialEq, Debug, Copy, Clone)]
-enum Precedence {
-    Lowest,
-    Equals,
-    LessGreater,
-    Sum,
-    Product,
-    Prefix,
-    Call,
-}
-
 // global parser object
 pub struct Parser {
+    type_map: HashMap<String, String>,
     tokens: Vec<Token>,
     pos: usize,
 }
@@ -24,9 +15,14 @@ pub struct Parser {
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Parser {
         Parser {
+            type_map: HashMap::new(),
             tokens: tokens,
             pos: 0,
         }
+    }
+
+    pub fn get_type_map(&self) -> &HashMap<String, String> {
+        &self.type_map
     }
 
     pub fn parse(&mut self) -> Vec<Statement> {
@@ -46,18 +42,69 @@ impl Parser {
     }
 
     fn declaration(&mut self) -> Option<Statement> {
-        if let Ok(statement) = self.statement() {
+        if self.expect(&Token::Let) {
+            self.advance();
+            if let Ok(stmt) = self.var_declaration() {
+                return Some(stmt);
+            } else {
+                return None;
+            }
+        } else if let Ok(statement) = self.statement() {
             Some(statement)
         } else {
             None
         }
     }
 
+    fn var_declaration(&mut self) -> Result<Statement> {
+        let name = self.expect_identifier()?;
+        self.advance();
+        self.consume(&Token::Colon, "Expected ':' after variable name".to_string());
+        let ty = self.expect_identifier()?;
+
+        self.advance();
+
+        let initialiser = if self.expect(&Token::Equal) {
+            self.advance();
+            self.expression().ok()
+        } else {
+            println!("No initialiser");
+            None
+        };
+
+        self.consume(&Token::SemiColon, "Expected ';' after variable declaration".to_string());
+        self.type_map.insert(name.clone(), ty.clone());
+        Ok(Statement::Let(name, ty, Box::new(initialiser.unwrap())))
+    }
+
     fn statement(&mut self) -> Result<Statement> {
         if self.expect(&Token::Print) {
             self.print_statement()
+        } else if self.expect(&Token::If) {
+            self.if_statement()
         } else {
             self.expression_statement()
+        }
+    }
+
+    fn if_statement(&mut self) -> Result<Statement> {
+        self.advance();
+        self.consume(&Token::LeftParen, "Expected '(' after 'if'".to_string());
+        let condition = self.expression()?;
+        self.consume(&Token::RightParen, "Expected ')' after if condition".to_string());
+        let consequence = self.statement()?;
+        if self.expect(&Token::Else) {
+            self.advance();
+        Ok(Statement::IfElse (
+            Box::new(condition),
+            Box::new(consequence),
+            Box::new(self.statement()?),
+        ))
+        } else {
+            Ok(Statement::If (
+                Box::new(condition),
+                Box::new(consequence),
+            ))
         }
     }
 
@@ -211,6 +258,12 @@ impl Parser {
                     _ => unreachable!(),
                 }
             }
+            Token::Identifier(_) => {
+                match self.advance() {
+                    Token::Identifier(i) => Ok(Expression::Identifier(i)),
+                    _ => unreachable!(),
+                }
+            }
             Token::LeftParen => {
                 self.advance();
                 let expr = self.expression()?;
@@ -238,6 +291,16 @@ impl Parser {
             return true;
         }
         false
+    }
+
+    fn expect_identifier(&mut self) -> Result<String> {
+        if self.done() {
+            return Err(anyhow::anyhow!("Expected identifier"));
+        }
+        match self.peek() {
+            Token::Identifier(s) => Ok(s),
+            _ => Err(anyhow::anyhow!("Expected identifier")),
+        }
     }
 
     // advances the parser by 1 token

@@ -2,8 +2,9 @@ use std::fmt::{Display, Formatter, Result};
 
 use crate::ast::*;
 use crate::tokens::*;
+use crate::environment::*;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Value {
     Int(i64),
     Float(f64),
@@ -124,19 +125,48 @@ fn eval_expression(expr: &Expression) -> Value {
     }
 }
 
+fn eval_statement(x: &Statement) -> Value {
+    let mut env = Environment::new();
+    match x {
+        Statement::Expression(e) => {
+            return eval_expression(&e);
+        },
+        Statement::Print(expr) => {
+            let value = eval_expression(&expr);
+            println!("{}", value);
+            return value;
+        }
+        Statement::If(condition, consequence) => {
+            let condition = eval_expression(&condition);
+            if let Value::Bool(b) = condition {
+                if b {
+                    eval_statement(&consequence);
+                }
+            }
+            return Value::Null;
+        }
+        Statement::IfElse(condition, consequence, alternative) => {
+            let condition = eval_expression(&condition);
+            if let Value::Bool(b) = condition {
+                if b {
+                    eval_statement(&consequence);
+                } else {
+                    eval_statement(&alternative);
+                }
+            }
+            return Value::Null;
+        }
+        Statement::Let(name, _ty, expr) => {
+            env.define(name.clone(), eval_expression(&expr));
+            return Value::Null;
+        }
+    }
+}
+
 pub fn eval(ast: Vec<Statement>) -> Vec<Value> {
     let mut values = Vec::new();
     for x in ast {
-        match x {
-            Statement::Expression(e) => {
-                let value = eval_expression(&e);
-                values.push(value);
-            },
-            Statement::Print(expr) => {
-                let value = eval_expression(&expr);
-                println!("{}", value);
-            }
-        }
+        values.push(eval_statement(&x));
     }
     values
 }

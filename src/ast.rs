@@ -8,7 +8,7 @@ pub enum Expression {
     String(String),
     Boolean(bool),
     Identifier(String),
-    If(Box<Expression>, Box<Expression>, Box<Expression>),
+    Variable(String, Box<Expression>),
     Function(Vec<String>, Vec<Expression>),
     Call(Box<Expression>, Token, Vec<Expression>),
     Array(Vec<Expression>),
@@ -23,5 +23,8 @@ pub enum Expression {
 
 pub enum Statement {
     Expression(Expression),
+    If(Box<Expression>, Box<Statement>),
+    IfElse(Box<Expression>, Box<Statement>, Box<Statement>),
+    Let(String, String, Box<Expression>),
     Print(Expression),
 }

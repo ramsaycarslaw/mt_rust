@@ -85,7 +85,10 @@ impl Lexer {
             "print" => tokens::Token::Print,
             "true" => tokens::Token::Bool(true),
             "false" => tokens::Token::Bool(false),
-            _ => panic!("Unknown identifier: {}", s),
+            "let" => tokens::Token::Let,
+            "if" => tokens::Token::If,
+            "else" => tokens::Token::Else,
+            _ => tokens::Token::Identifier(s),
         }
     }
 
@@ -102,6 +105,9 @@ impl Lexer {
             ';' => tokens::Token::SemiColon,
             '\'' => tokens::Token::Quote,
             '"' => self.read_string(),
+            '{' => tokens::Token::LeftBrace,
+            '}' => tokens::Token::RightBrace,
+            ':' => tokens::Token::Colon,
 
             // whitespace
             ' ' => tokens::Token::WhiteSpace,
