@@ -82,9 +82,22 @@ impl Parser {
             self.print_statement()
         } else if self.expect(&Token::If) {
             self.if_statement()
+        } else if self.expect(&&Token::LeftBrace) {
+            Ok(Statement::Block(self.block()?))
         } else {
             self.expression_statement()
         }
+    }
+
+    fn block(&mut self) -> Result<Vec<Statement>> {
+        let mut statements = Vec::new();
+        self.advance();
+        while !self.expect(&Token::RightBrace) && !self.done() {
+            statements.push(self.declaration().unwrap());
+        }
+        self.advance();
+        Ok(statements)
+
     }
 
     fn if_statement(&mut self) -> Result<Statement> {

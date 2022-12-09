@@ -27,5 +27,6 @@ pub enum Statement {
     If(Box<Expression>, Box<Statement>),
     IfElse(Box<Expression>, Box<Statement>, Box<Statement>),
     Let(String, String, Box<Expression>),
+    Block(Vec<Statement>),
     Print(Expression),
 }

@@ -172,6 +172,13 @@ impl Evaluator {
                 self.env.define(name.to_string(), e);
                 return Value::Null;
             }
+            Statement::Block(statements) => {
+                let mut result = Value::Null;
+                for statement in statements {
+                    result = self.eval_statement(&statement);
+                }
+                return result;
+            }
         }
     }
 

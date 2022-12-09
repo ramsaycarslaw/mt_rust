@@ -98,6 +98,13 @@ fn typecheck_statement(stmt: &Statement, map: HashMap<String, String>)  -> Type 
                 panic!("Type mismatch: {:?} and {:?}", ty_of(e, map.clone()), string_to_type(s))
             }
         }
+        Statement::Block(stmts) => {
+            let mut t = Type::Null;
+            for stmt in stmts {
+                t = typecheck_statement(stmt, map.clone());
+            }
+            t
+        }
     }
 }
 
