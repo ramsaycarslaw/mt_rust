@@ -27,7 +27,8 @@ fn repl(debug: bool) {
         let mut l = lexer::Lexer::new(input.clone());
         let mut p = parser::Parser::new(l.lex(debug));
         let ast = p.parse();
-        eval::eval(ast);
+        let mut e = eval::Evaluator::new();
+        e.eval(ast);
         history.push(input);
     }   
 }
@@ -44,7 +45,8 @@ fn main() {
         let type_map = p.get_type_map();
         // println!("Typechecking... got {:?}", typechecker::typecheck(&ast));
         typechecker::typecheck(&ast, type_map.clone());
-        eval::eval(ast);
+        let mut e = eval::Evaluator::new();
+        e.eval(ast);
     } else {
         println!("Usage: mt [filename]");
     }

@@ -1,5 +1,6 @@
 use crate::tokens::Token;
 
+#[derive(Debug, PartialEq)]
 pub enum Expression {
     Prefix(Token, Box<Expression>),
     Infix(Box<Expression>, Token, Box<Expression>),
