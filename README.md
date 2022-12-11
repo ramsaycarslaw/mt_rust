@@ -6,8 +6,8 @@ types and typechecker in Rust.
 ## Building 
 
 ```
-git clone https://github.com/ramsaycarslaw/mt-rust
-cd mt-rust
+git clone https://github.com/ramsaycarslaw/mt_rust
+cd mt_rust
 cargo build --release
 ```
 
