@@ -88,6 +88,7 @@ impl Lexer {
             "let" => tokens::Token::Let,
             "if" => tokens::Token::If,
             "else" => tokens::Token::Else,
+            "while" => tokens::Token::While,
             _ => tokens::Token::Identifier(s),
         }
     }

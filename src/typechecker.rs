@@ -32,6 +32,20 @@ pub fn ty_of(expr: &Expression, map: HashMap<String, String>) -> Type {
         Expression::Identifier(name) => {
             string_to_type(map.get(name).unwrap())
         }
+        Expression::Variable(name) => {
+            string_to_type(map.get(name).unwrap())
+        }
+        Expression::Assign(name, e) => {
+            let ty = ty_of(e, map.clone());
+            match (string_to_type(map.get(name).unwrap()), ty) {
+                (Type::Integer, Type::Integer) => Type::Integer,
+                (Type::Float, Type::Float) => Type::Float,
+                (Type::String, Type::String) => Type::String,
+                (Type::Boolean, Type::Boolean) => Type::Boolean,
+                (Type::Null, Type::Null) => Type::Null,
+                _ => panic!("Type mismatch"),
+            }
+        }
         Expression::Infix(e1, op, e2) => {
             match op {
                 Token::BangEqual | Token::DoubleEqual | Token::Greater | Token::GreaterEqual |
@@ -90,6 +104,12 @@ fn typecheck_statement(stmt: &Statement, map: HashMap<String, String>)  -> Type 
             } else {
                 panic!("Type mismatch: {:?} and {:?}", t1, t2)
             }
+        }
+        Statement::While(e, s) => {
+            if ty_of(e, map.clone()) != Type::Boolean {
+                panic!("Condition must be boolean")
+            }
+            typecheck_statement(s, map.clone())
         }
         Statement::Let(_, s, e) => {
             if ty_of(e, map.clone()) == string_to_type(s) {

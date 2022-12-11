@@ -84,6 +84,8 @@ impl Parser {
             self.if_statement()
         } else if self.expect(&&Token::LeftBrace) {
             Ok(Statement::Block(self.block()?))
+        } else if self.expect(&Token::While) {
+            self.while_statement()
         } else {
             self.expression_statement()
         }
@@ -98,6 +100,15 @@ impl Parser {
         self.advance();
         Ok(statements)
 
+    }
+
+    fn while_statement(&mut self) -> Result<Statement> {
+        self.advance();
+        self.consume(&Token::LeftParen, "Expected '(' after 'while'".to_string());
+        let condition = self.expression()?;
+        self.consume(&Token::RightParen, "Expected ')' after condition".to_string());
+        let body = self.statement()?;
+        Ok(Statement::While(condition, Box::new(body)))
     }
 
     fn if_statement(&mut self) -> Result<Statement> {
@@ -135,7 +146,22 @@ impl Parser {
     }
 
     fn expression(&mut self) -> Result<Expression> {
-        self.or()
+        self.assignment()
+    }
+
+    fn assignment(&mut self) -> Result<Expression> {
+        let expr = self.or()?;
+
+        println!("Assignment: {:?}", expr);
+
+        if self.expect(&Token::Equal) {
+            self.advance();
+            let equals = self.assignment()?;
+            if let Expression::Variable(name) = expr {
+                return Ok(Expression::Assign(name, Box::new(equals)));
+            }
+        }
+        Ok(expr)
     }
 
     fn or(&mut self) -> Result<Expression> {

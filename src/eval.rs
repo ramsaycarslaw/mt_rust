@@ -13,6 +13,16 @@ pub enum Value {
     Null,
 }
 
+impl Value {
+    pub fn is_truthy(&self) -> bool {
+        match self {
+            Value::Bool(b) => *b,
+            Value::Null => false,
+            _ => true,
+        }
+    }
+}
+
 impl Display for Value {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match self {
@@ -43,7 +53,13 @@ impl Evaluator {
             Expression::Boolean(b) => Value::Bool(*b),
             Expression::String(s) => Value::String(s.clone()),
             Expression::Identifier(name) => self.env.get(name).unwrap(),
-
+            Expression::Variable(name) => self.env.get(name).unwrap(),
+            Expression::Assign(name, expr) => {
+                let e = self.eval_expression(expr);
+                println!("{} = {:?}", name, e);
+                self.env.assign(name, e.clone()).unwrap();
+                e
+            }
             Expression::Prefix(t, e) => {
                 let right = self.eval_expression(&e);
                 match t {
@@ -170,6 +186,12 @@ impl Evaluator {
             Statement::Let(name, _ty, expr) => {
                 let e = self.eval_expression(&expr);
                 self.env.define(name.to_string(), e);
+                return Value::Null;
+            }
+            Statement::While(expr, s) => {
+               while self.eval_expression(&expr).is_truthy() {
+                   self.eval_statement(&s);
+               }
                 return Value::Null;
             }
             Statement::Block(statements) => {

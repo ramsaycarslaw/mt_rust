@@ -46,6 +46,7 @@ pub enum Token {
     If,
     Else,
     Let,
+    While,
 
     // illegal
     Illegal(char, usize, usize),
